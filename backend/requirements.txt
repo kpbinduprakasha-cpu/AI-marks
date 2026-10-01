@@ -1,0 +1,13 @@
+fastapi[standard]
+pydantic[email]
+sqlalchemy
+psycopg2-binary
+alembic
+python-jose[cryptography]
+passlib[bcrypt]
+python-multipart
+ollama
+sentence-transformers
+scikit-learn
+pytest
+requests

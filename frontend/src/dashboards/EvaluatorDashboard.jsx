@@ -36,6 +36,15 @@ export default function EvaluatorDashboard() {
   const [showEditProfile, setShowEditProfile] = useState(false);
   const [showChangePassword, setShowChangePassword] = useState(false);
 
+  // Candidates state
+  const [showAddStudentModal, setShowAddStudentModal] = useState(false);
+  const [showEditStudentModal, setShowEditStudentModal] = useState(false);
+  const [editingStudent, setEditingStudent] = useState(null);
+  const [candidates, setCandidates] = useState([
+    { name: 'John Doe', email: 'candidate@skillassess.local', status: 'Active', branch: 'Computer Science', usn: '1RV21CS001', semester: '6th' }
+  ]);
+  const [newStudent, setNewStudent] = useState({ name: '', email: '', password: '', branch: '', usn: '', semester: '' });
+
   // Mock questions state
   const [questions, setQuestions] = useState([]);
   const [newQuestion, setNewQuestion] = useState({ text: '', type: 'MCQ', marks: 5 });
@@ -239,26 +248,42 @@ export default function EvaluatorDashboard() {
 
         {activeTab === 'candidates' && !viewingCandidate && (
           <div>
-            <h2 className="text-2xl font-bold mb-6">Candidates Directory</h2>
+            <div className="flex items-center justify-between mb-6">
+              <h2 className="text-2xl font-bold">Candidates Directory</h2>
+              <button onClick={() => setShowAddStudentModal(true)} className="px-4 py-2 text-white bg-blue-600 rounded hover:bg-blue-700 font-bold flex items-center">
+                <Plus className="w-5 h-5 mr-2" />
+                Add Student
+              </button>
+            </div>
             <div className="bg-white rounded-lg shadow border overflow-hidden">
               <table className="w-full text-left border-collapse">
                 <thead>
                   <tr className="bg-gray-100 border-b">
                     <th className="p-4 font-semibold text-gray-600">Name</th>
+                    <th className="p-4 font-semibold text-gray-600">USN ID</th>
                     <th className="p-4 font-semibold text-gray-600">Email</th>
+                    <th className="p-4 font-semibold text-gray-600">Branch / Sem</th>
                     <th className="p-4 font-semibold text-gray-600">Status</th>
                     <th className="p-4 font-semibold text-gray-600">Action</th>
                   </tr>
                 </thead>
                 <tbody>
-                  <tr className="border-b hover:bg-gray-50">
-                    <td className="p-4">John Doe</td>
-                    <td className="p-4 text-gray-500">candidate@skillassess.local</td>
-                    <td className="p-4"><span className="px-2 py-1 text-xs font-semibold text-green-700 bg-green-100 rounded-full">Active</span></td>
-                    <td className="p-4">
-                      <button onClick={() => setViewingCandidate({name: 'John Doe', email: 'candidate@skillassess.local'})} className="text-blue-600 hover:underline">View Results</button>
-                    </td>
-                  </tr>
+                  {candidates.map((cand, index) => (
+                    <tr key={index} className="border-b hover:bg-gray-50">
+                      <td className="p-4 font-semibold">{cand.name}</td>
+                      <td className="p-4 text-gray-600">{cand.usn}</td>
+                      <td className="p-4 text-gray-500">{cand.email}</td>
+                      <td className="p-4 text-gray-500">{cand.branch} ({cand.semester})</td>
+                      <td className="p-4">
+                        <span className={`px-2 py-1 text-xs font-semibold rounded-full ${cand.status === 'Active' ? 'text-green-700 bg-green-100' : 'text-gray-700 bg-gray-100'}`}>
+                          {cand.status}
+                        </span>
+                      </td>
+                      <td className="p-4">
+                        <button onClick={() => setViewingCandidate(cand)} className="text-blue-600 hover:underline">View Results</button>
+                      </td>
+                    </tr>
+                  ))}
                 </tbody>
               </table>
             </div>
@@ -270,15 +295,22 @@ export default function EvaluatorDashboard() {
             <button onClick={() => setViewingCandidate(null)} className="text-sm text-gray-500 hover:text-blue-600 mb-4 inline-block">
               &larr; Back to Candidates List
             </button>
-            <h2 className="text-2xl font-bold mb-2">Candidate Report: {viewingCandidate.name}</h2>
-            <p className="text-gray-500 mb-6">{viewingCandidate.email}</p>
+            <div className="flex justify-between items-start mb-6">
+              <div>
+                <h2 className="text-2xl font-bold mb-2">Candidate Report: {viewingCandidate.name}</h2>
+                <p className="text-gray-500">{viewingCandidate.email} | USN: {viewingCandidate.usn || 'N/A'} | {viewingCandidate.branch || 'Unknown'} ({viewingCandidate.semester || 'N/A'})</p>
+              </div>
+              <button onClick={() => { setEditingStudent(viewingCandidate); setShowEditStudentModal(true); }} className="px-4 py-2 bg-blue-100 text-blue-700 rounded font-bold flex items-center hover:bg-blue-200">
+                <Edit3 className="w-4 h-4 mr-2" /> Edit Student
+              </button>
+            </div>
             
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
               <div className="p-6 bg-white rounded-lg shadow border">
                 <h3 className="font-bold text-lg mb-4 border-b pb-2">AI Skill Gap Analysis</h3>
                 <p className="text-gray-700 text-sm mb-2"><strong>Strong Areas:</strong> Variables, Flow Control</p>
                 <p className="text-gray-700 text-sm mb-2"><strong>Needs Improvement:</strong> Object-Oriented Programming (Classes)</p>
-                <p className="text-gray-700 text-sm"><strong>AI Recommendation:</strong> John struggled with inheritance concepts in the Python Basics descriptive exam. Recommend assigning supplementary module on OOP.</p>
+                <p className="text-gray-700 text-sm"><strong>AI Recommendation:</strong> {viewingCandidate.name.split(' ')[0]} struggled with inheritance concepts in the Python Basics descriptive exam. Recommend assigning supplementary module on OOP.</p>
               </div>
               <div className="p-6 bg-white rounded-lg shadow border">
                 <h3 className="font-bold text-lg mb-4 border-b pb-2">Recent Assessments</h3>
@@ -292,6 +324,30 @@ export default function EvaluatorDashboard() {
                     <span className="px-2 py-1 bg-yellow-100 text-yellow-700 rounded-full font-bold">Pending Review</span>
                   </li>
                 </ul>
+              </div>
+            </div>
+
+            <div className="p-6 bg-white rounded-lg shadow border">
+              <h3 className="font-bold text-lg mb-4 border-b pb-2">Performance & Progress Over Time</h3>
+              <div className="h-64">
+                <ResponsiveContainer width="100%" height="100%">
+                  <BarChart data={[
+                    { subject: 'Python', score: 82 },
+                    { subject: 'Data Science', score: 45 },
+                    { subject: 'Web Dev', score: 90 },
+                    { subject: 'Database', score: 75 }
+                  ]}>
+                    <CartesianGrid strokeDasharray="3 3" />
+                    <XAxis dataKey="subject" />
+                    <YAxis domain={[0, 100]} />
+                    <Tooltip />
+                    <Bar dataKey="score" fill="#3b82f6" radius={[4, 4, 0, 0]} />
+                  </BarChart>
+                </ResponsiveContainer>
+              </div>
+              <div className="mt-4 p-4 bg-blue-50 border border-blue-100 rounded-lg">
+                <p className="text-blue-800 font-semibold mb-1">Study Focus for {viewingCandidate.name.split(' ')[0]}:</p>
+                <p className="text-blue-700 text-sm">The graph indicates a sharp drop in Data Science performance. Recommend focused study on Pandas/NumPy arrays before moving to Machine Learning.</p>
               </div>
             </div>
           </div>
@@ -657,6 +713,107 @@ export default function EvaluatorDashboard() {
                 Update Password
               </button>
             </form>
+          </div>
+        </div>
+      )}
+      {/* Edit Student Modal */}
+      {showEditStudentModal && editingStudent && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white rounded-lg shadow-lg p-6 w-full max-w-lg">
+            <div className="flex justify-between items-center mb-4">
+              <h2 className="text-xl font-bold">Edit Student Details</h2>
+              <button onClick={() => setShowEditStudentModal(false)} className="text-gray-500 hover:text-red-500">
+                <X className="w-6 h-6" />
+              </button>
+            </div>
+            <div className="grid grid-cols-2 gap-4 mb-4">
+              <div>
+                <label className="block text-sm font-semibold mb-1">Full Name</label>
+                <input type="text" value={editingStudent.name} onChange={e => setEditingStudent({...editingStudent, name: e.target.value})} className="w-full border rounded p-2" />
+              </div>
+              <div>
+                <label className="block text-sm font-semibold mb-1">Email ID</label>
+                <input type="email" value={editingStudent.email} onChange={e => setEditingStudent({...editingStudent, email: e.target.value})} className="w-full border rounded p-2" />
+              </div>
+              <div>
+                <label className="block text-sm font-semibold mb-1">Password</label>
+                <input type="password" value={editingStudent.password || '••••••••'} onChange={e => setEditingStudent({...editingStudent, password: e.target.value})} className="w-full border rounded p-2" />
+              </div>
+              <div>
+                <label className="block text-sm font-semibold mb-1">USN ID</label>
+                <input type="text" value={editingStudent.usn || ''} onChange={e => setEditingStudent({...editingStudent, usn: e.target.value})} className="w-full border rounded p-2" />
+              </div>
+              <div>
+                <label className="block text-sm font-semibold mb-1">Branch</label>
+                <input type="text" value={editingStudent.branch || ''} onChange={e => setEditingStudent({...editingStudent, branch: e.target.value})} className="w-full border rounded p-2" />
+              </div>
+              <div>
+                <label className="block text-sm font-semibold mb-1">Semester / Year</label>
+                <input type="text" value={editingStudent.semester || ''} onChange={e => setEditingStudent({...editingStudent, semester: e.target.value})} className="w-full border rounded p-2" />
+              </div>
+            </div>
+            <button 
+              onClick={() => {
+                if (!editingStudent.name || !editingStudent.email) return alert("Name and Email are required!");
+                setCandidates(candidates.map(c => c.email === viewingCandidate.email ? editingStudent : c));
+                setViewingCandidate(editingStudent);
+                setShowEditStudentModal(false);
+                alert("Student details updated successfully!");
+              }} 
+              className="w-full py-2 bg-blue-600 text-white font-bold rounded hover:bg-blue-700">
+              Save Changes
+            </button>
+          </div>
+        </div>
+      )}
+
+      {/* Add Student Modal */}
+      {showAddStudentModal && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white rounded-lg shadow-lg p-6 w-full max-w-lg">
+            <div className="flex justify-between items-center mb-4">
+              <h2 className="text-xl font-bold">Add New Student</h2>
+              <button onClick={() => setShowAddStudentModal(false)} className="text-gray-500 hover:text-red-500">
+                <X className="w-6 h-6" />
+              </button>
+            </div>
+            <div className="grid grid-cols-2 gap-4 mb-4">
+              <div>
+                <label className="block text-sm font-semibold mb-1">Full Name</label>
+                <input type="text" value={newStudent.name} onChange={e => setNewStudent({...newStudent, name: e.target.value})} className="w-full border rounded p-2" placeholder="Student Name" />
+              </div>
+              <div>
+                <label className="block text-sm font-semibold mb-1">Email ID</label>
+                <input type="email" value={newStudent.email} onChange={e => setNewStudent({...newStudent, email: e.target.value})} className="w-full border rounded p-2" placeholder="student@skillassess.local" />
+              </div>
+              <div>
+                <label className="block text-sm font-semibold mb-1">Password</label>
+                <input type="password" value={newStudent.password} onChange={e => setNewStudent({...newStudent, password: e.target.value})} className="w-full border rounded p-2" placeholder="Initial Password" />
+              </div>
+              <div>
+                <label className="block text-sm font-semibold mb-1">USN ID</label>
+                <input type="text" value={newStudent.usn} onChange={e => setNewStudent({...newStudent, usn: e.target.value})} className="w-full border rounded p-2" placeholder="e.g. 1RV21CS001" />
+              </div>
+              <div>
+                <label className="block text-sm font-semibold mb-1">Branch</label>
+                <input type="text" value={newStudent.branch} onChange={e => setNewStudent({...newStudent, branch: e.target.value})} className="w-full border rounded p-2" placeholder="e.g. Computer Science" />
+              </div>
+              <div>
+                <label className="block text-sm font-semibold mb-1">Semester / Year</label>
+                <input type="text" value={newStudent.semester} onChange={e => setNewStudent({...newStudent, semester: e.target.value})} className="w-full border rounded p-2" placeholder="e.g. 6th Sem" />
+              </div>
+            </div>
+            <button 
+              onClick={() => {
+                if (!newStudent.name || !newStudent.email) return alert("Name and Email are required!");
+                setCandidates([...candidates, { ...newStudent, status: 'Active' }]);
+                setNewStudent({ name: '', email: '', password: '', branch: '', usn: '', semester: '' });
+                setShowAddStudentModal(false);
+                alert("Student added successfully!");
+              }} 
+              className="w-full py-2 bg-blue-600 text-white font-bold rounded hover:bg-blue-700">
+              Add Student
+            </button>
           </div>
         </div>
       )}

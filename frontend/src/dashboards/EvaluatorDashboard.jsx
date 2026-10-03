@@ -14,9 +14,9 @@ export default function EvaluatorDashboard() {
     const saved = localStorage.getItem('mock_assessments');
     if (saved) return JSON.parse(saved);
     return [
-      { id: 1, title: 'Python Basics', type: 'MIXED', mode: 'ONLINE', duration: 60, marks: 100 },
-      { id: 2, title: 'Data Science Fundamentals', type: 'MCQ', mode: 'ONLINE', duration: 45, marks: 50 },
-      { id: 3, title: 'Web Development Practical', type: 'PRACTICAL', mode: 'BLENDED', duration: 120, marks: 200 }
+      { id: 1, title: 'Python Basics', type: 'MIXED', mode: 'ONLINE', duration: 60, marks: 100, status: 'HOSTED' },
+      { id: 2, title: 'Data Science Fundamentals', type: 'MCQ', mode: 'ONLINE', duration: 45, marks: 50, status: 'DRAFT' },
+      { id: 3, title: 'Web Development Practical', type: 'PRACTICAL', mode: 'BLENDED', duration: 120, marks: 200, status: 'DRAFT' }
     ];
   });
 
@@ -40,9 +40,11 @@ export default function EvaluatorDashboard() {
   const [showAddStudentModal, setShowAddStudentModal] = useState(false);
   const [showEditStudentModal, setShowEditStudentModal] = useState(false);
   const [editingStudent, setEditingStudent] = useState(null);
-  const [candidates, setCandidates] = useState([
-    { name: 'John Doe', email: 'candidate@skillassess.local', status: 'Active', branch: 'Computer Science', usn: '1RV21CS001', semester: '6th' }
-  ]);
+  const [candidates, setCandidates] = useState(() => {
+    const saved = localStorage.getItem('studentProfile');
+    if (saved) return [JSON.parse(saved)];
+    return [{ name: 'K P Binduprakasha', email: 'candidate@skillassess.local', status: 'Active', branch: 'Computer Science', usn: '1RV21CS001', semester: '6th' }];
+  });
   const [newStudent, setNewStudent] = useState({ name: '', email: '', password: '', branch: '', usn: '', semester: '' });
 
   // Mock questions state
@@ -88,7 +90,7 @@ export default function EvaluatorDashboard() {
 
   const handleCreateAssessment = (e) => {
     e.preventDefault();
-    const created = { ...newAssessment, id: Date.now() };
+    const created = { ...newAssessment, id: Date.now(), status: 'DRAFT' };
     setAssessments([...assessments, created]);
     setShowCreateModal(false);
     setNewAssessment({ title: '', type: 'MCQ', mode: 'ONLINE', duration: 60, marks: 100 });
@@ -376,8 +378,22 @@ export default function EvaluatorDashboard() {
                   <div className="mt-6 flex space-x-3">
                     <button 
                       onClick={() => handleManageAssessment(assessment)}
-                      className="w-full px-4 py-2 text-sm font-semibold text-blue-700 bg-blue-100 rounded hover:bg-blue-200">
-                      Manage Questions
+                      className="flex-1 px-4 py-2 text-sm font-semibold text-blue-700 bg-blue-100 rounded hover:bg-blue-200 text-center">
+                      Manage
+                    </button>
+                    <button 
+                      onClick={() => {
+                        setAssessments(assessments.map(a => {
+                          if (a.id === assessment.id) {
+                            const newStatus = a.status === 'HOSTED' ? 'DRAFT' : 'HOSTED';
+                            alert(`Assessment is now ${newStatus === 'HOSTED' ? 'Live on Candidate Portal' : 'Unpublished'}`);
+                            return { ...a, status: newStatus };
+                          }
+                          return a;
+                        }));
+                      }}
+                      className={`flex-1 px-4 py-2 text-sm font-semibold rounded text-center ${assessment.status === 'HOSTED' ? 'bg-green-600 text-white hover:bg-green-700' : 'bg-gray-200 text-gray-700 hover:bg-gray-300'}`}>
+                      {assessment.status === 'HOSTED' ? 'Hosted (Live)' : 'Host (Draft)'}
                     </button>
                   </div>
                 </div>
@@ -755,7 +771,9 @@ export default function EvaluatorDashboard() {
             <button 
               onClick={() => {
                 if (!editingStudent.name || !editingStudent.email) return alert("Name and Email are required!");
-                setCandidates(candidates.map(c => c.email === viewingCandidate.email ? editingStudent : c));
+                const updated = candidates.map(c => c.email === viewingCandidate.email ? editingStudent : c);
+                setCandidates(updated);
+                localStorage.setItem('studentProfile', JSON.stringify(editingStudent));
                 setViewingCandidate(editingStudent);
                 setShowEditStudentModal(false);
                 alert("Student details updated successfully!");
@@ -806,7 +824,10 @@ export default function EvaluatorDashboard() {
             <button 
               onClick={() => {
                 if (!newStudent.name || !newStudent.email) return alert("Name and Email are required!");
-                setCandidates([...candidates, { ...newStudent, status: 'Active' }]);
+                const updatedStudent = { ...newStudent, status: 'Active' };
+                const updatedList = [...candidates, updatedStudent];
+                setCandidates(updatedList);
+                if (candidates.length === 0) localStorage.setItem('studentProfile', JSON.stringify(updatedStudent));
                 setNewStudent({ name: '', email: '', password: '', branch: '', usn: '', semester: '' });
                 setShowAddStudentModal(false);
                 alert("Student added successfully!");
